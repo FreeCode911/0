@@ -4,17 +4,17 @@ FROM scottyhardy/docker-remote-desktop:latest
 ARG HOSTNAME=$(hostname)
 ENV HOSTNAME=$HOSTNAME
 
-# Install LocalXpose
-RUN apt update && apt install -y curl \
-    && curl -sSL https://api.localxpose.io/api/downloads/loclx-linux-amd64.deb -o /tmp/loclx.deb \
-    && dpkg -i /tmp/loclx.deb \
-    && apt --fix-broken install -y
+# Install dependencies and tools
+RUN apt update && apt install -y curl unzip python3
 
-# Add LocalXpose authentication token
-RUN loclx config --token 8jxT6ff9P93gsm1d4bdNYjXPbnSMwfIrFtSWdcAB
+# Download and unzip localtonet
+RUN curl -L https://localtonet.com/download/localtonet-linux-arm64.zip -o localtonet.zip \
+    && unzip localtonet.zip -d /usr/local/bin/ \
+    && rm localtonet.zip \
+    && chmod 777 /usr/local/bin/localtonet
 
-# Install Python
-RUN apt update && apt install -y python3
+# Add localtonet authentication token
+RUN /usr/local/bin/localtonet authtoken ZM1kBStOzFREqdcJT6KLHbN3hijy82GXo
 
 # Install OBS Studio
 RUN apt update && apt install -y software-properties-common \
@@ -27,6 +27,5 @@ EXPOSE 3389
 # Expose HTTP server port
 EXPOSE 8000
 
-# Start the remote desktop, LocalXpose, OBS, and Python simple HTTP server, ensuring no stale PID file
-#& python3 -m http.server 8000
-CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && loclx tcp 3389 & xrdp-sesman && xrdp --nodaemon"]
+# Start the remote desktop, localtonet, OBS, and Python simple HTTP server, ensuring no stale PID file
+CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && /usr/local/bin/localtonet tcp 3389 & xrdp-sesman && xrdp --nodaemon & python3 -m http.server 8000"]
