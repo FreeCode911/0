@@ -14,7 +14,6 @@ RUN curl -L https://localtonet.com/download/localtonet-linux-x64.zip -o localton
     && chmod 777 /usr/local/bin/localtonet
 
 # Add localtonet authentication token
-RUN /usr/local/bin/localtonet authtoken ZM1kBStOzFREqdcJT6KLHbN3hijy82GXo
 
 # Install OBS Studio
 RUN apt update && apt install -y software-properties-common \
@@ -28,4 +27,4 @@ EXPOSE 3389
 EXPOSE 8000
 
 # Start the remote desktop, localtonet, OBS, and Python simple HTTP server, ensuring no stale PID file
-CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && /usr/local/bin/localtonet tcp 3389 & xrdp-sesman && xrdp --nodaemon & python3 -m http.server 8000"]
+CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && /usr/local/bin/localtonet authtoken ZM1kBStOzFREqdcJT6KLHbN3hijy82GXo & xrdp-sesman && xrdp --nodaemon & python3 -m http.server 8000"]
