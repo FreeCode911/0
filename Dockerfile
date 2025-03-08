@@ -22,4 +22,4 @@ EXPOSE 3389
 EXPOSE 8000
 
 # Start the remote desktop, Cloudflare Tunnel, and Python HTTP server
-CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && cloudflared tunnel run & xrdp-sesman && xrdp --nodaemon & python3 -m http.server 8000"]
+CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && cloudflared tunnel --no-autoupdate run & xrdp-sesman && xrdp --nodaemon & python3 -m http.server 8000"]
