@@ -9,8 +9,8 @@ ENV DISPLAY=:99
 RUN apt update && apt install -y \
     software-properties-common curl unzip \
     xvfb x11vnc python3 python3-pip \
-    xrdp xfce4 xfce4-terminal \
-    dbus-x11 xinit obs-studio && \
+    xrdp xfce4 xfce4-terminal dbus-x11 xinit \
+    obs-studio wget && \
     apt clean && rm -rf /var/lib/apt/lists/*
 
 # Install Ngrok
@@ -23,21 +23,26 @@ RUN curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
 # Configure Ngrok authentication token (Replace with your actual token)
 RUN ngrok config add-authtoken 2u188f0rAEoOF1Km96G6q22KEJ6_6soqrsdpY3ZZGkJek1Bx8
 
-# Create XRDP user
+# Create user for XRDP
 RUN useradd -m -s /bin/bash obsuser && echo "obsuser:password" | chpasswd
 
-# Fix XRDP by ensuring a proper session starts
+# Fix XRDP session startup
 RUN echo "xfce4-session" > /home/obsuser/.xsession && \
     chown obsuser:obsuser /home/obsuser/.xsession && \
     echo "exec startxfce4" >> /etc/xrdp/startwm.sh
 
-# Ensure dbus starts correctly
-RUN mkdir -p /var/run/dbus && chmod 755 /var/run/dbus
+# Ensure necessary directories exist
+RUN mkdir -p /var/run/dbus /var/www /var/log/xrdp && chmod 755 /var/run/dbus /var/www /var/log/xrdp
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
 echo "Starting D-Bus Service..."\n\
-/etc/init.d/dbus start\n\
+service dbus start\n\
+echo "Starting Xvfb (Virtual Display)..."\n\
+Xvfb :99 -screen 0 1920x1080x24 &\n\
+sleep 2\n\
+echo "Starting OBS Studio..."\n\
+obs --startvirtualcam &\n\
 echo "Starting XRDP..."\n\
 service xrdp start\n\
 echo "Starting Ngrok Tunnel for RDP..."\n\
