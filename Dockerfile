@@ -28,4 +28,5 @@ EXPOSE 3389
 EXPOSE 8000
 
 # Start the remote desktop, LocalXpose, OBS, and Python simple HTTP server, ensuring no stale PID file
-CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && loclx tcp 3389 & xrdp-sesman && xrdp --nodaemon & python3 -m http.server 8000"]
+#& python3 -m http.server 8000
+CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && loclx tcp 3389 & xrdp-sesman && xrdp --nodaemon"]
