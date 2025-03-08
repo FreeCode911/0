@@ -13,9 +13,15 @@ RUN apt update && apt install -y \
     obs-studio && \
     apt clean && rm -rf /var/lib/apt/lists/*
 
-# Install Cloudflare Tunnel
-RUN curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared && \
-    chmod +x /usr/local/bin/cloudflared
+# Install Ngrok
+RUN curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
+    | tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null && \
+    echo "deb https://ngrok-agent.s3.amazonaws.com buster main" \
+    | tee /etc/apt/sources.list.d/ngrok.list && \
+    apt update && apt install -y ngrok
+
+# Configure Ngrok authentication token (Replace with your actual token)
+RUN ngrok config add-authtoken 2u188f0rAEoOF1Km96G6q22KEJ6_6soqrsdpY3ZZGkJek1Bx8
 
 # Create XRDP user
 RUN useradd -m -s /bin/bash obsuser && echo "obsuser:password" | chpasswd
@@ -32,15 +38,15 @@ RUN mkdir -p /var/www
 RUN echo '#!/bin/bash\n\
 echo "Starting XRDP..."\n\
 service xrdp start\n\
-echo "Starting Cloudflare Tunnel..."\n\
-cloudflared tunnel --no-autoupdate run --token eyJhIjoiODZiZDAxODBhODRlYThiZDQ5MDIwOWRmODM4MmRmZWMiLCJ0IjoiNzczYzBlMjQtYzVkMy00MDQzLWE5YmYtNGYxMzM3ZGQ1MTM3IiwicyI6Ik5ETTNaR0V3TW1JdE5tTTNaQzAwWVRCaUxXSTNOamt0WlRFM016Y3lZekZtTmpJMSJ9 &\n\
-CLOUDFLARE_PID=$!\n\
-echo "Cloudflare Tunnel started (PID: $CLOUDFLARE_PID)."\n\
+echo "Starting Ngrok Tunnel for RDP..."\n\
+ngrok tcp 3389 &\n\
+NGROK_PID=$!\n\
+echo "Ngrok Tunnel started (PID: $NGROK_PID)."\n\
 echo "Starting Simple HTTP Server on port 8080..."\n\
 cd /var/www && python3 -m http.server 8080 &\n\
 HTTP_SERVER_PID=$!\n\
 echo "Python HTTP Server started (PID: $HTTP_SERVER_PID)."\n\
-wait $CLOUDFLARE_PID $HTTP_SERVER_PID' > /usr/local/bin/start-all && \
+wait $NGROK_PID $HTTP_SERVER_PID' > /usr/local/bin/start-all && \
     chmod +x /usr/local/bin/start-all
 
 # Expose necessary ports
