@@ -4,20 +4,16 @@ FROM scottyhardy/docker-remote-desktop:latest
 ARG HOSTNAME=$(hostname)
 ENV HOSTNAME=$HOSTNAME
 
-# Install curl
-RUN apt update && apt install -y curl
+# Install ngrok
+RUN apt update && apt install -y curl \
+    && curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
+    | tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null \
+    && echo "deb https://ngrok-agent.s3.amazonaws.com buster main" \
+    | tee /etc/apt/sources.list.d/ngrok.list \
+    && apt update && apt install -y ngrok
 
-# Install Tailscale
-RUN curl -fsSL https://tailscale.com/install.sh | sh
-
-# Load TUN module
-RUN sudo modprobe tun
-
-# Start the tailscaled service
-RUN sudo tailscaled &
-
-# Start Tailscale
-RUN sudo tailscale up --auth-key=tskey-auth-ktQ7C93B3e11CNTRL-yuRuqK3qf8FM1FP9FTvU8FLmvwFchaGtM
+# Add ngrok authentication token
+RUN ngrok config add-authtoken 2u188f0rAEoOF1Km96G6q22KEJ6_6soqrsdpY3ZZGkJek1Bx8
 
 # Install Python
 RUN apt update && apt install -y python3
@@ -28,5 +24,5 @@ EXPOSE 3389
 # Expose HTTP server port
 EXPOSE 8000
 
-# Start the remote desktop and Python HTTP server
-CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && xrdp-sesman && xrdp --nodaemon & python3 -m http.server 8000"]
+# Start the remote desktop, ngrok, and Python simple HTTP server, ensuring no stale PID file
+CMD ["/bin/bash", "-c", "rm -f /var/run/xrdp/xrdp-sesman.pid && ngrok tcp 3389 & xrdp-sesman && xrdp --nodaemon & python3 -m http.server 8000"]
