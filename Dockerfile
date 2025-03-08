@@ -8,7 +8,13 @@ ENV HOSTNAME=$HOSTNAME
 RUN apt update && apt install -y curl
 
 # Install Tailscale
-RUN curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-ktQ7C93B3e11CNTRL-yuRuqK3qf8FM1FP9FTvU8FLmvwFchaGtM
+RUN curl -fsSL https://tailscale.com/install.sh | sh
+
+# Start the tailscaled service
+RUN sudo tailscaled &
+
+# Start Tailscale
+RUN sudo tailscale up --auth-key=tskey-auth-ktQ7C93B3e11CNTRL-yuRuqK3qf8FM1FP9FTvU8FLmvwFchaGtM
 
 # Install Python
 RUN apt update && apt install -y python3
