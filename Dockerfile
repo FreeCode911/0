@@ -5,31 +5,33 @@ FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DISPLAY=:99
 
-# Install required packages
+# Install dependencies
 RUN apt update && apt install -y \
-    obs-studio xvfb x11vnc \
-    python3 python3-pip \
-    curl unzip && \
+    software-properties-common curl unzip \
+    xvfb x11vnc python3 python3-pip && \
+    add-apt-repository -y ppa:obsproject/obs-studio && \
+    apt update && apt install -y obs-studio && \
     apt clean && rm -rf /var/lib/apt/lists/*
-
-# Ensure OBS is properly installed
-RUN apt update && apt install -y obs-studio
 
 # Install Cloudflare Tunnel
 RUN curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared && \
     chmod +x /usr/local/bin/cloudflared
 
-# Create /var/www directory for HTTP server
+# Create directory for HTTP server
 RUN mkdir -p /var/www
 
-# Startup script
+# Create startup script
 RUN echo '#!/bin/bash\n\
 echo "Starting Xvfb (Virtual Display)..."\n\
 Xvfb :99 -screen 0 1920x1080x24 &\n\
 sleep 2\n\
+echo "Checking OBS installation..."\n\
+if ! command -v obs &> /dev/null; then\n\
+    echo "OBS is not installed! Exiting..."\n\
+    exit 1\n\
+fi\n\
 echo "Starting OBS Studio..."\n\
-which obs-studio || { echo "OBS not installed!"; exit 1; }\n\
-obs-studio --startvirtualcam &\n\
+obs --startvirtualcam &\n\
 OBS_PID=$!\n\
 echo "OBS Studio started (PID: $OBS_PID)."\n\
 echo "Starting Cloudflare Tunnel..."\n\
