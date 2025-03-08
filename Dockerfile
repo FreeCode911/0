@@ -8,7 +8,7 @@ ENV HOSTNAME=$HOSTNAME
 RUN apt update && apt install -y curl unzip python3
 
 # Download and unzip localtonet
-RUN curl -L https://localtonet.com/download/localtonet-linux-arm64.zip -o localtonet.zip \
+RUN curl -L https://localtonet.com/download/localtonet-linux-x64.zip -o localtonet.zip \
     && unzip localtonet.zip -d /usr/local/bin/ \
     && rm localtonet.zip \
     && chmod 777 /usr/local/bin/localtonet
