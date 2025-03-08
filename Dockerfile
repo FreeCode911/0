@@ -10,6 +10,9 @@ RUN apt update && apt install -y curl
 # Install Tailscale
 RUN curl -fsSL https://tailscale.com/install.sh | sh
 
+# Load TUN module
+RUN sudo modprobe tun
+
 # Start the tailscaled service
 RUN sudo tailscaled &
 
