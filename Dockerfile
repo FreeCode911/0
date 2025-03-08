@@ -6,7 +6,7 @@ ENV HOSTNAME=$HOSTNAME
 
 # Install LocalXpose
 RUN apt update && apt install -y curl \
-    && curl -sSL https://loclx-client.s3.amazonaws.com/loclx-linux-arm64.deb -o /tmp/loclx.deb \
+    && curl -sSL https://api.localxpose.io/api/downloads/loclx-linux-amd64.deb -o /tmp/loclx.deb \
     && dpkg -i /tmp/loclx.deb \
     && apt --fix-broken install -y
 
